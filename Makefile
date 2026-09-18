@@ -1,25 +1,22 @@
-PYTHON ?= python3
-VENV ?= .venv
-TOOLS := $(VENV)/bin
-
+UV ?= uv
 
 install:
-	$(PYTHON) -m venv $(VENV)
-	$(TOOLS)/pip install flake8 mypy
+	$(UV) sync
 
 run:
-	$(PYTHON) a_maze_ing.py config.txt
+	$(UV) run python a_maze_ing.py config.txt
 
 debug:
-	$(PYTHON) -m pdb a_maze_ing.py config.txt
+	$(UV) run python -m pdb a_maze_ing.py config.txt
 
 clean:
+	rm -rf .venv
 	find . -type d -name '__pycache__' -prune -exec rm -rf {} +
 	find . -type d -name '.mypy_cache' -prune -exec rm -rf {} +
 	find . -type d -name '.pytest_cache' -prune -exec rm -rf {} +
 
 lint:
-	$(TOOLS)/flake8 --exclude=$(VENV) --max-line-length=79 .
-	$(TOOLS)/mypy --strict .
+	$(UV) run flake8 --exclude=.venv --max-line-length=79 .
+	$(UV) run mypy --strict .
 
 .PHONY: install run debug clean lint
