@@ -1,6 +1,5 @@
-"""Shared maze wall and movement constants."""
-
 from typing import Final
+
 
 NORTH: Final[int] = 1
 EAST: Final[int] = 2

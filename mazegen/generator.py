@@ -18,6 +18,16 @@ from .constants import ALL_WALLS, DELTA, EAST, NORTH, OPPOSITE, SOUTH, WEST
 Coordinate = tuple[int, int]
 Grid = list[list[int]]
 
+__all__ = [
+    "ALL_WALLS",
+    "EAST",
+    "NORTH",
+    "SOUTH",
+    "WEST",
+    "Grid",
+    "MazeGenerator",
+]
+
 _DIRECTIONS: tuple[tuple[int, int, int], ...] = (
     (0, -1, NORTH),
     (1, 0, EAST),
@@ -72,8 +82,7 @@ class MazeGenerator:
     def generate(self) -> Grid:
         """Generate and return a connected maze for all non-blocked cells."""
         self.grid = [
-            [ALL_WALLS for _ in range(self.width)]
-            for _ in range(self.height)
+            [ALL_WALLS for _ in range(self.width)] for _ in range(self.height)
         ]
         rng = random.Random(self.seed)
         start = next(self._active_cells())
