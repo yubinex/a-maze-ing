@@ -1,1 +1,1 @@
-"""Write generated mazes in the subject-required output format."""
+"""Reserved for the subject-required generated-maze output writer."""

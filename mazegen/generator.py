@@ -46,10 +46,10 @@ class MazeGenerator:
     """Generate mazes and expose their wall grid and shortest paths.
 
     Args:
-        width: Number of cells in each row.
-        height: Number of cells in each column.
+        width: Number of columns.
+        height: Number of rows.
         seed: Optional seed used for reproducible generation.
-        perfect: Keep exactly one path between every non-blocked pair of cells.
+        perfect: Whether to leave the active maze as a spanning tree.
         blocked_cells: Coordinates that remain fully closed and unconnected.
 
     Each cell in :attr:`grid` is a wall bitmask: North, East, South, and West

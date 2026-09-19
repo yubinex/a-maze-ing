@@ -1,3 +1,5 @@
+"""Wall-bit flags and coordinate mappings used by the maze generator."""
+
 from typing import Final
 
 

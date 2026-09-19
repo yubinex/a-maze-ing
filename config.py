@@ -53,7 +53,7 @@ class Config:
         entry: Entry cell as ``(x, y)``.
         exit: Exit cell as ``(x, y)``.
         output_file: Path the maze is written to.
-        perfect: Whether exactly one path must link entry and exit.
+        perfect: Whether generation produces one path between active cells.
         seed: Random seed, or ``None`` to pick one at random.
         algorithm: Name of the generation algorithm.
     """

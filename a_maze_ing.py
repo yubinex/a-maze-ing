@@ -7,9 +7,8 @@ Usage:
 import sys
 
 from config import ConfigError, load_config
-from mazegen import MazeGenerator
+from interactive import run_interactive
 from pattern import create_42_pattern
-from renderer import render_maze
 
 
 def main(argv: list[str]) -> int:
@@ -40,22 +39,7 @@ def main(argv: list[str]) -> int:
         )
         pattern = set()
 
-    try:
-        generator = MazeGenerator(
-            config.width,
-            config.height,
-            seed=config.seed,
-            perfect=config.perfect,
-            blocked_cells=pattern,
-        )
-        grid = generator.generate()
-        path = generator.solution_path(config.entry, config.exit)
-    except ValueError as err:
-        print(f"Error: {err}", file=sys.stderr)
-        return 1
-
-    render_maze(grid, pattern, config.entry, config.exit, path)
-    return 0
+    return run_interactive(config, pattern)
 
 
 if __name__ == "__main__":
