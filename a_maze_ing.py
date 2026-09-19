@@ -7,6 +7,8 @@ Usage:
 import sys
 
 from config import ConfigError, load_config
+from mazegen import MazeGenerator
+from renderer import render_maze
 
 
 def main(argv: list[str]) -> int:
@@ -27,8 +29,19 @@ def main(argv: list[str]) -> int:
         print(f"Error: {err}", file=sys.stderr)
         return 1
 
-    # Placeholder until the generator exists.
-    print(config)
+    try:
+        generator = MazeGenerator(
+            config.width,
+            config.height,
+            seed=config.seed,
+            perfect=config.perfect,
+        )
+        grid = generator.generate()
+    except ValueError as err:
+        print(f"Error: {err}", file=sys.stderr)
+        return 1
+
+    render_maze(grid)
     return 0
 
 
