@@ -1,0 +1,21 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyc
+.mypy_cache/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Packaging and test coverage
+*.egg-info/
+build/
+dist/
+.coverage
+htmlcov/
+
+# Project assets supplied outside version control
+*.pdf
