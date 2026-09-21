@@ -44,6 +44,11 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
         except KeyboardInterrupt:
             print("\nInterrupted. Exiting.", file=sys.stderr)
             return 130
+        except OSError as err:
+            # A disconnected terminal or failed input stream should not crash
+            # the interactive session with a traceback.
+            print(f"Error: terminal input failed ({err})", file=sys.stderr)
+            return 1
         if command == "q":
             return 0
         if command == "p":

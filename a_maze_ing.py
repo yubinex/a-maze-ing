@@ -41,4 +41,9 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    try:
+        sys.exit(main(sys.argv))
+    except BrokenPipeError:
+        # A downstream command (for example, ``head``) may close a pipe early.
+        # Treat that expected condition as a successful, quiet exit.
+        sys.exit(0)
