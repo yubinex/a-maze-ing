@@ -83,7 +83,8 @@ wheel="$PWD/mazegen-0.1.0-py3-none-any.whl"
 evaluation_dir="$(mktemp -d "$PWD/mazegen-evaluation.XXXXXX")"
 
 printf '[2/4] Copying application files to %s...\n' "$evaluation_dir"
-cp a_maze_ing.py config.py interactive.py pattern.py renderer.py config.txt \
+cp a_maze_ing.py config.py interactive.py output_writer.py pattern.py renderer.py \
+    config.txt \
     "$evaluation_dir"
 
 cd "$evaluation_dir"
