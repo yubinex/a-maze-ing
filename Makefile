@@ -25,7 +25,10 @@ lint-strict:
 	$(UV) run mypy --strict .
 	$(UV) run flake8 --exclude=.venv .
 
+test:
+	$(UV) run python -m unittest discover -s tests
+
 mazegen-release:
 	$(UV) build --out-dir .
 
-.PHONY: install run debug clean lint lint-strict mazegen-release
+.PHONY: install run debug clean lint lint-strict test mazegen-release
