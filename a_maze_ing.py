@@ -7,6 +7,8 @@ Usage:
 import sys
 
 from config import ConfigError, load_config
+from interactive import run_interactive
+from pattern import create_42_pattern
 
 
 def main(argv: list[str]) -> int:
@@ -27,9 +29,17 @@ def main(argv: list[str]) -> int:
         print(f"Error: {err}", file=sys.stderr)
         return 1
 
-    # Placeholder until the generator exists.
-    print(config)
-    return 0
+    pattern = create_42_pattern(
+        config.width, config.height, config.entry, config.exit
+    )
+    if pattern is None:
+        print(
+            "Error: Maze is too small to display the 42 pattern.",
+            file=sys.stderr,
+        )
+        pattern = set()
+
+    return run_interactive(config, pattern)
 
 
 if __name__ == "__main__":

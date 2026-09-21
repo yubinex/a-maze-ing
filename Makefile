@@ -1,25 +1,31 @@
-PYTHON ?= python3
-VENV ?= .venv
-TOOLS := $(VENV)/bin
-
+UV ?= uv
+CONFIG ?= config.txt
 
 install:
-	$(PYTHON) -m venv $(VENV)
-	$(TOOLS)/pip install flake8 mypy
+	$(UV) sync
 
 run:
-	$(PYTHON) a_maze_ing.py config.txt
+	$(UV) run python a_maze_ing.py "$(CONFIG)"
 
 debug:
-	$(PYTHON) -m pdb a_maze_ing.py config.txt
+	$(UV) run python -m pdb a_maze_ing.py config.txt
 
 clean:
+	rm -rf .venv build dist
 	find . -type d -name '__pycache__' -prune -exec rm -rf {} +
 	find . -type d -name '.mypy_cache' -prune -exec rm -rf {} +
 	find . -type d -name '.pytest_cache' -prune -exec rm -rf {} +
+	find . -type d -name '*.egg-info' -prune -exec rm -rf {} +
 
 lint:
-	$(TOOLS)/flake8 --exclude=$(VENV) --max-line-length=79 .
-	$(TOOLS)/mypy --strict .
+	$(UV) run flake8 --exclude=.venv .
+	$(UV) run mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
-.PHONY: install run debug clean lint
+lint-strict:
+	$(UV) run mypy --strict .
+	$(UV) run flake8 --exclude=.venv .
+
+mazegen-release:
+	$(UV) build --out-dir .
+
+.PHONY: install run debug clean lint lint-strict mazegen-release

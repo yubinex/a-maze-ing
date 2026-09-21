@@ -1,6 +1,7 @@
-"""Shared maze wall and movement constants."""
+"""Wall-bit flags and coordinate mappings used by the maze generator."""
 
 from typing import Final
+
 
 NORTH: Final[int] = 1
 EAST: Final[int] = 2
