@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import a_maze_ing
 from config import Config, ConfigError
@@ -89,7 +89,7 @@ class RendererTests(unittest.TestCase):
 
 
 class InteractiveErrorTests(unittest.TestCase):
-    """Verify terminal input failures do not escape as tracebacks."""
+    """Verify terminal failures and seed behavior in the session."""
 
     def test_returns_error_when_terminal_input_fails(self) -> None:
         config = Config(1, 1, (0, 0), (0, 0), "maze.txt", True, None, "DFS")
@@ -110,3 +110,44 @@ class InteractiveErrorTests(unittest.TestCase):
             patch("builtins.print"),
         ):
             self.assertEqual(run_interactive(config, set()), 0)
+
+    def test_regenerate_reuses_configured_fixed_seed(self) -> None:
+        config = Config(1, 1, (0, 0), (0, 0), "maze.txt", True, 42, "DFS")
+        with (
+            patch(
+                "interactive._generate_maze", return_value=([[15]], "")
+            ) as generate,
+            patch("interactive.render_maze"),
+            patch("builtins.input", side_effect=["r", "q"]),
+            patch("builtins.print") as printer,
+        ):
+            self.assertEqual(run_interactive(config, set()), 0)
+        self.assertEqual(
+            generate.call_args_list,
+            [call(config, set(), 42), call(config, set(), 42)],
+        )
+        printer.assert_any_call("Seed: 42 (fixed) | Perfect: True")
+        printer.assert_any_call(
+            "[r]egenerate (same maze: fixed seed)  [p]ath  [c]olor  [q]uit"
+        )
+
+    def test_regenerate_uses_new_random_seed_when_unconfigured(self) -> None:
+        config = Config(1, 1, (0, 0), (0, 0), "maze.txt", True, None, "DFS")
+        with (
+            patch(
+                "interactive._generate_maze", return_value=([[15]], "")
+            ) as generate,
+            patch("interactive.render_maze"),
+            patch("interactive.random.randrange", side_effect=[11, 22]),
+            patch("builtins.input", side_effect=["r", "q"]),
+            patch("builtins.print") as printer,
+        ):
+            self.assertEqual(run_interactive(config, set()), 0)
+        self.assertEqual(
+            generate.call_args_list,
+            [call(config, set(), 11), call(config, set(), 22)],
+        )
+        printer.assert_any_call("Seed: 11 (random) | Perfect: True")
+        printer.assert_any_call(
+            "[r]egenerate (new maze)  [p]ath  [c]olor  [q]uit"
+        )
