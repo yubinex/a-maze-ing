@@ -1,10 +1,11 @@
 UV ?= uv
+CONFIG ?= config.txt
 
 install:
 	$(UV) sync
 
 run:
-	$(UV) run python a_maze_ing.py config.txt
+	$(UV) run python a_maze_ing.py "$(CONFIG)"
 
 debug:
 	$(UV) run python -m pdb a_maze_ing.py config.txt
