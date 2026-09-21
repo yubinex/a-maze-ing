@@ -5,6 +5,7 @@ import sys
 
 from config import Config
 from mazegen import Grid, MazeGenerator
+from output_writer import OutputError, write_maze
 from renderer import render_maze
 
 Coordinate = tuple[int, int]
@@ -16,7 +17,7 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
     try:
         current_seed = config.seed
         grid, path = _generate_maze(config, pattern, current_seed)
-    except ValueError as err:
+    except (ValueError, OutputError) as err:
         print(f"Error: {err}", file=sys.stderr)
         return 1
 
@@ -53,7 +54,7 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
             try:
                 current_seed = random.randrange(2**63)
                 grid, path = _generate_maze(config, pattern, current_seed)
-            except ValueError as err:
+            except (ValueError, OutputError) as err:
                 print(f"Error: {err}", file=sys.stderr)
                 return 1
         elif command:
@@ -63,9 +64,11 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
 def _generate_maze(
     config: Config, blocked_cells: set[Coordinate], seed: int | str | None
 ) -> tuple[Grid, str]:
-    """Generate one maze and return its grid and shortest entry-to-exit path.
+    """Generate one maze, write it to the output file, and return it.
 
-    The path is expressed using the ``N``, ``E``, ``S``, and ``W`` letters.
+    The returned path is expressed using the ``N``, ``E``, ``S``, and ``W``
+    letters. Every generated maze replaces the previous output file, so the
+    file always describes the maze currently on screen.
     """
     generator = MazeGenerator(
         config.width,
@@ -75,4 +78,6 @@ def _generate_maze(
         blocked_cells=blocked_cells,
     )
     grid = generator.generate()
-    return grid, generator.solution_path(config.entry, config.exit)
+    path = generator.solution_path(config.entry, config.exit)
+    write_maze(config.output_file, grid, config.entry, config.exit, path)
+    return grid, path
