@@ -1,8 +1,19 @@
+# A-Maze-ing default configuration.
+# One KEY=VALUE pair per line; lines starting with '#' are ignored.
+
+# --- Mandatory keys ---
 WIDTH=20
 HEIGHT=15
 ENTRY=0,0
 EXIT=19,14
 OUTPUT_FILE=maze.txt
 PERFECT=True
-SEED=XXXX
+
+# --- Optional keys ---
+# SEED seeds the whole session, not a single maze: [r]egenerate always builds
+# a new maze, but the sequence of mazes is identical on every run with the
+# same seed. Comment it out for a session that is different every time.
+SEED=42
+
+# ALGORITHM selects the generation algorithm (supported: DFS).
 ALGORITHM=DFS

@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr
 from pathlib import Path
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import a_maze_ing
 from config import Config, ConfigError
@@ -111,43 +111,72 @@ class InteractiveErrorTests(unittest.TestCase):
         ):
             self.assertEqual(run_interactive(config, set()), 0)
 
-    def test_regenerate_reuses_configured_fixed_seed(self) -> None:
-        config = Config(1, 1, (0, 0), (0, 0), "maze.txt", True, 42, "DFS")
+    def _run_session(self, seed: int | str | None) -> list[object]:
+        """Return the seeds used by a session that regenerates once."""
+        config = Config(1, 1, (0, 0), (0, 0), "maze.txt", True, seed, "DFS")
         with (
             patch(
                 "interactive._generate_maze", return_value=([[15]], "")
             ) as generate,
             patch("interactive.render_maze"),
             patch("builtins.input", side_effect=["r", "q"]),
+            patch("builtins.print"),
+        ):
+            self.assertEqual(run_interactive(config, set()), 0)
+        return [call_.args[2] for call_ in generate.call_args_list]
+
+    def test_regenerate_builds_a_new_maze_despite_a_fixed_seed(self) -> None:
+        first, second = self._run_session(42)
+        self.assertNotEqual(first, second)
+
+    def test_fixed_seed_reproduces_the_whole_maze_sequence(self) -> None:
+        self.assertEqual(self._run_session(42), self._run_session(42))
+
+    def test_different_seeds_produce_different_sequences(self) -> None:
+        self.assertNotEqual(self._run_session(42), self._run_session(43))
+
+    def test_regenerate_builds_a_new_maze_without_a_seed(self) -> None:
+        first, second = self._run_session(None)
+        self.assertNotEqual(first, second)
+
+    def test_reports_session_seed_and_maze_number(self) -> None:
+        config = Config(1, 1, (0, 0), (0, 0), "maze.txt", True, 42, "DFS")
+        with (
+            patch("interactive._generate_maze", return_value=([[15]], "")),
+            patch("interactive.render_maze"),
+            patch("builtins.input", side_effect=["r", "q"]),
             patch("builtins.print") as printer,
         ):
             self.assertEqual(run_interactive(config, set()), 0)
-        self.assertEqual(
-            generate.call_args_list,
-            [call(config, set(), 42), call(config, set(), 42)],
-        )
-        printer.assert_any_call("Seed: 42 (fixed) | Perfect: True")
-        printer.assert_any_call(
-            "[r]egenerate (same maze: fixed seed)  [p]ath  [c]olor  [q]uit"
-        )
+        printer.assert_any_call("Seed: 42 (fixed) | Maze 1 | Perfect: True")
+        printer.assert_any_call("Seed: 42 (fixed) | Maze 2 | Perfect: True")
+        printer.assert_any_call("[r]egenerate  [p]ath  [c]olor  [q]uit")
 
-    def test_regenerate_uses_new_random_seed_when_unconfigured(self) -> None:
+    def test_reports_random_session_seed_when_unconfigured(self) -> None:
+        config = Config(1, 1, (0, 0), (0, 0), "maze.txt", True, None, "DFS")
+        with (
+            patch("interactive._generate_maze", return_value=([[15]], "")),
+            patch("interactive.render_maze"),
+            patch("interactive.random.randrange", return_value=11),
+            patch("builtins.input", side_effect=["r", "q"]),
+            patch("builtins.print") as printer,
+        ):
+            self.assertEqual(run_interactive(config, set()), 0)
+        printer.assert_any_call("Seed: 11 (random) | Maze 1 | Perfect: True")
+        printer.assert_any_call("Seed: 11 (random) | Maze 2 | Perfect: True")
+
+    def test_reported_random_seed_replays_the_same_session(self) -> None:
+        """A random session can be reproduced through its reported seed."""
         config = Config(1, 1, (0, 0), (0, 0), "maze.txt", True, None, "DFS")
         with (
             patch(
                 "interactive._generate_maze", return_value=([[15]], "")
             ) as generate,
             patch("interactive.render_maze"),
-            patch("interactive.random.randrange", side_effect=[11, 22]),
+            patch("interactive.random.randrange", return_value=11),
             patch("builtins.input", side_effect=["r", "q"]),
-            patch("builtins.print") as printer,
+            patch("builtins.print"),
         ):
             self.assertEqual(run_interactive(config, set()), 0)
-        self.assertEqual(
-            generate.call_args_list,
-            [call(config, set(), 11), call(config, set(), 22)],
-        )
-        printer.assert_any_call("Seed: 11 (random) | Perfect: True")
-        printer.assert_any_call(
-            "[r]egenerate (new maze)  [p]ath  [c]olor  [q]uit"
-        )
+        seeds = [call_.args[2] for call_ in generate.call_args_list]
+        self.assertEqual(seeds, self._run_session(11))

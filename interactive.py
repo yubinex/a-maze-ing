@@ -10,16 +10,26 @@ from renderer import render_maze
 
 Coordinate = tuple[int, int]
 _WALL_COLORS = ("\033[37m", "\033[34m", "\033[33m", "\033[32m")
+_SEED_RANGE = 2**63
 
 
 def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
-    """Display a maze and process regeneration, path, color, and quit input."""
+    """Display a maze and process regeneration, path, color, and quit input.
+
+    ``SEED`` seeds the whole session rather than one maze. Every maze draws
+    its own seed from that session stream, so regenerating always builds a
+    new maze while the sequence of mazes stays reproducible across runs.
+    """
     fixed_seed = config.seed is not None
-    current_seed = (
-        config.seed if fixed_seed else random.randrange(2**63)
+    session_seed = (
+        config.seed if fixed_seed else random.randrange(_SEED_RANGE)
     )
+    session_rng = random.Random(session_seed)
+    maze_number = 1
     try:
-        grid, path = _generate_maze(config, pattern, current_seed)
+        grid, path = _generate_maze(
+            config, pattern, session_rng.randrange(_SEED_RANGE)
+        )
     except (ValueError, OutputError) as err:
         print(f"Error: {err}", file=sys.stderr)
         return 1
@@ -31,7 +41,8 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
             print("\033[2J\033[H", end="")
         seed_kind = "fixed" if fixed_seed else "random"
         print(
-            f"Seed: {current_seed!r} ({seed_kind}) | Perfect: {config.perfect}"
+            f"Seed: {session_seed!r} ({seed_kind}) | Maze {maze_number} "
+            f"| Perfect: {config.perfect}"
         )
         render_maze(
             grid,
@@ -41,8 +52,7 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
             path if show_path else "",
             _WALL_COLORS[color_index],
         )
-        regenerate_hint = "same maze: fixed seed" if fixed_seed else "new maze"
-        print(f"[r]egenerate ({regenerate_hint})  [p]ath  [c]olor  [q]uit")
+        print("[r]egenerate  [p]ath  [c]olor  [q]uit")
         try:
             command = input("> ").strip().lower()
         except EOFError:
@@ -64,9 +74,10 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
             color_index = (color_index + 1) % len(_WALL_COLORS)
         elif command == "r":
             try:
-                if not fixed_seed:
-                    current_seed = random.randrange(2**63)
-                grid, path = _generate_maze(config, pattern, current_seed)
+                grid, path = _generate_maze(
+                    config, pattern, session_rng.randrange(_SEED_RANGE)
+                )
+                maze_number += 1
             except (ValueError, OutputError) as err:
                 print(f"Error: {err}", file=sys.stderr)
                 return 1
