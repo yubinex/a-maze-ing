@@ -14,7 +14,11 @@ _PATTERN: Final[tuple[str, ...]] = (
 
 
 class PatternError(Exception):
-    """Raised when the ``42`` pattern does not fit the configured maze."""
+    """Raised when the ``42`` pattern cannot be used in a maze."""
+
+
+class PatternTooSmallError(PatternError):
+    """Raised when a maze is too small to contain the ``42`` pattern."""
 
 
 def create_42_pattern(
@@ -42,7 +46,7 @@ def create_42_pattern(
     pattern_width = len(_PATTERN[0])
     pattern_height = len(_PATTERN)
     if width < pattern_width or height < pattern_height:
-        raise PatternError(
+        raise PatternTooSmallError(
             f"maze is too small for the 42 pattern (needs at least "
             f"{pattern_width}x{pattern_height}, got {width}x{height})"
         )

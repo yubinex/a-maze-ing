@@ -11,7 +11,7 @@ import a_maze_ing
 from config import Config, ConfigError
 from interactive import run_interactive
 from output_writer import OutputError, format_maze, write_maze
-from pattern import PatternError
+from pattern import PatternError, PatternTooSmallError
 from renderer import _path_cells, colorize, render_maze
 
 
@@ -55,7 +55,7 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertIn("bad config", stderr.getvalue())
 
-    def test_uses_empty_pattern_when_pattern_creation_fails(self) -> None:
+    def test_uses_empty_pattern_when_maze_is_too_small(self) -> None:
         config = Config(8, 6, (0, 0), (7, 5), "maze.txt", True, None, "DFS")
         stderr = io.StringIO()
         with redirect_stderr(stderr):
@@ -63,7 +63,7 @@ class CommandLineTests(unittest.TestCase):
                 patch("a_maze_ing.load_config", return_value=config),
                 patch(
                     "a_maze_ing.create_42_pattern",
-                    side_effect=PatternError("does not fit"),
+                    side_effect=PatternTooSmallError("does not fit"),
                 ),
                 patch("a_maze_ing.run_interactive", return_value=0) as run,
             ):
@@ -71,6 +71,24 @@ class CommandLineTests(unittest.TestCase):
                     a_maze_ing.main(["a_maze_ing.py", "config.txt"]), 0
                 )
         self.assertEqual(run.call_args.args[1], set())
+
+    def test_rejects_invalid_pattern_placement(self) -> None:
+        config = Config(8, 6, (0, 0), (7, 5), "maze.txt", True, None, "DFS")
+        stderr = io.StringIO()
+        with redirect_stderr(stderr):
+            with (
+                patch("a_maze_ing.load_config", return_value=config),
+                patch(
+                    "a_maze_ing.create_42_pattern",
+                    side_effect=PatternError("would cover ENTRY 2,2"),
+                ),
+                patch("a_maze_ing.run_interactive") as run,
+            ):
+                self.assertEqual(
+                    a_maze_ing.main(["a_maze_ing.py", "config.txt"]), 1
+                )
+        self.assertIn("invalid 42 pattern", stderr.getvalue())
+        run.assert_not_called()
 
 
 class RendererTests(unittest.TestCase):

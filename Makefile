@@ -11,10 +11,9 @@ debug:
 	$(UV) run python -m pdb a_maze_ing.py "$(CONFIG)"
 
 clean:
-	rm -rf .venv build dist
+	rm -rf .venv build dist maze.txt
 	find . -type d -name '__pycache__' -prune -exec rm -rf {} +
 	find . -type d -name '.mypy_cache' -prune -exec rm -rf {} +
-	find . -type d -name '.pytest_cache' -prune -exec rm -rf {} +
 	find . -type d -name '*.egg-info' -prune -exec rm -rf {} +
 
 lint:

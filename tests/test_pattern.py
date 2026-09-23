@@ -2,18 +2,22 @@
 
 import unittest
 
-from pattern import PatternError, create_42_pattern
+from pattern import PatternError, PatternTooSmallError, create_42_pattern
 
 
 class PatternTests(unittest.TestCase):
     """Verify pattern placement and invalid-pattern handling."""
 
     def test_rejects_maze_narrower_than_pattern(self) -> None:
-        with self.assertRaisesRegex(PatternError, "needs at least 7x5"):
+        with self.assertRaisesRegex(
+            PatternTooSmallError, "needs at least 7x5"
+        ):
             create_42_pattern(6, 5, (0, 0), (5, 4))
 
     def test_rejects_maze_shorter_than_pattern(self) -> None:
-        with self.assertRaisesRegex(PatternError, "needs at least 7x5"):
+        with self.assertRaisesRegex(
+            PatternTooSmallError, "needs at least 7x5"
+        ):
             create_42_pattern(7, 4, (0, 0), (6, 3))
 
     def test_rejects_entry_covered_by_pattern(self) -> None:
