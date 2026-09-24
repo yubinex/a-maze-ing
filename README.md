@@ -37,7 +37,7 @@ flowchart TD
 ```
 
 `a_maze_ing.py` validates command-line use and reports top-level errors.
-`config.py` parses the config; `pattern.py` validates the `42` placement;
+`config.py` parses the config; `pattern.py` chooses a valid `42` placement;
 `interactive.py` coordinates generation, output, and controls; `renderer.py`
 draws the maze; `output_writer.py` serializes it. `mazegen/` is the standalone
 reusable package.
@@ -131,9 +131,11 @@ SEED=42
 ALGORITHM=DFS
 ```
 
-If the centred `42` cannot be placed, because the maze is too small, the
-pattern would cover the entry or exit, or it would disconnect part of the maze,
-the program prints an error explaining why and continues without it.
+The `42` is centred when possible. If the centred pattern would cover the entry
+or exit, or cut the maze into unreachable regions, it moves to the nearest
+position that does neither. If the maze is too small, or no position works, the
+program prints an error and generates the maze without the `42`, as permitted
+by the subject.
 
 ## Output File Format
 

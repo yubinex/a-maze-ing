@@ -20,16 +20,27 @@ class PatternTests(unittest.TestCase):
         ):
             create_42_pattern(7, 4, (0, 0), (6, 3))
 
-    def test_rejects_entry_covered_by_pattern(self) -> None:
-        with self.assertRaisesRegex(PatternError, "cover ENTRY 6,5"):
-            create_42_pattern(20, 15, (6, 5), (0, 0))
+    def test_moves_pattern_off_entry(self) -> None:
+        cells = create_42_pattern(20, 15, (6, 5), (0, 0))
+        self.assertNotIn((6, 5), cells)
+        self.assertEqual(len(cells), 20)
 
-    def test_rejects_exit_covered_by_pattern(self) -> None:
-        with self.assertRaisesRegex(PatternError, "cover EXIT 6,5"):
-            create_42_pattern(20, 15, (0, 0), (6, 5))
+    def test_moves_pattern_off_exit(self) -> None:
+        cells = create_42_pattern(20, 15, (0, 0), (6, 5))
+        self.assertNotIn((6, 5), cells)
+        self.assertEqual(len(cells), 20)
+
+    def test_moves_pattern_to_nearest_free_position(self) -> None:
+        # Centre is (6, 5); moving one column right frees the entry.
+        cells = create_42_pattern(20, 15, (6, 5), (19, 14))
+        self.assertIn((7, 5), cells)
+
+    def test_rejects_minimum_size_maze_with_entry_on_pattern(self) -> None:
+        with self.assertRaisesRegex(PatternError, "no position"):
+            create_42_pattern(7, 5, (0, 0), (6, 4))
 
     def test_rejects_pattern_that_splits_minimum_size_maze(self) -> None:
-        with self.assertRaisesRegex(PatternError, "cut the maze"):
+        with self.assertRaisesRegex(PatternError, "no position"):
             create_42_pattern(7, 5, (0, 3), (6, 3))
 
     def test_centers_pattern_and_returns_closed_cells(self) -> None:

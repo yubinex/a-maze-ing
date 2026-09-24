@@ -27,7 +27,11 @@ def create_42_pattern(
     entry: Coordinate,
     exit_: Coordinate,
 ) -> set[Coordinate]:
-    """Return centered closed cells that visibly form ``42``.
+    """Return closed cells that visibly form ``42``, as centred as possible.
+
+    The centred position is preferred. If it would cover the entry or the
+    exit, or cut the maze into unreachable regions, the nearest position that
+    does neither is used instead.
 
     Args:
         width: Number of columns.
@@ -39,9 +43,9 @@ def create_42_pattern(
         The cells that the pattern keeps fully closed.
 
     Raises:
-        PatternError: If the maze is too small for the pattern, if the pattern
-            would cover the entry or the exit, or if it would cut the maze
-            into regions that cannot reach each other.
+        PatternTooSmallError: If the maze is smaller than the pattern.
+        PatternError: If no position keeps the entry and exit free and every
+            open cell reachable.
     """
     pattern_width = len(_PATTERN[0])
     pattern_height = len(_PATTERN)
@@ -51,25 +55,33 @@ def create_42_pattern(
             f"{pattern_width}x{pattern_height}, got {width}x{height})"
         )
 
-    start_x = (width - pattern_width) // 2
-    start_y = (height - pattern_height) // 2
-    cells = {
-        (start_x + x, start_y + y)
-        for y, row in enumerate(_PATTERN)
-        for x, value in enumerate(row)
-        if value == "1"
-    }
-    for key, (x, y) in (("ENTRY", entry), ("EXIT", exit_)):
-        if (x, y) in cells:
-            raise PatternError(
-                f"the 42 pattern would cover {key} {x},{y}"
-            )
-    if _splits_maze(width, height, cells, entry):
-        raise PatternError(
-            "the 42 pattern would cut the maze into regions that cannot "
-            "reach each other"
-        )
-    return cells
+    center_x = (width - pattern_width) // 2
+    center_y = (height - pattern_height) // 2
+    starts = sorted(
+        (
+            (start_x, start_y)
+            for start_y in range(height - pattern_height + 1)
+            for start_x in range(width - pattern_width + 1)
+        ),
+        key=lambda start: (
+            abs(start[0] - center_x) + abs(start[1] - center_y)
+        ),
+    )
+    for start_x, start_y in starts:
+        cells = {
+            (start_x + x, start_y + y)
+            for y, row in enumerate(_PATTERN)
+            for x, value in enumerate(row)
+            if value == "1"
+        }
+        if entry in cells or exit_ in cells:
+            continue
+        if not _splits_maze(width, height, cells, entry):
+            return cells
+    raise PatternError(
+        "no position for the 42 pattern keeps ENTRY and EXIT free and "
+        "every cell reachable"
+    )
 
 
 def _splits_maze(
