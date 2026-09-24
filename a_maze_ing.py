@@ -43,6 +43,10 @@ def main(argv: list[str]) -> int:
 if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv))
+    except KeyboardInterrupt:
+        # Ctrl-C outside the prompt, e.g. while a large maze is generated.
+        print("\nInterrupted. Exiting.", file=sys.stderr)
+        sys.exit(0)
     except BrokenPipeError:
         # A downstream command (for example, ``head``) may close a pipe early.
         # Treat that expected condition as a successful, quiet exit.
