@@ -72,7 +72,7 @@ class CommandLineTests(unittest.TestCase):
                 )
         self.assertEqual(run.call_args.args[1], set())
 
-    def test_rejects_invalid_pattern_placement(self) -> None:
+    def test_uses_empty_pattern_when_placement_is_invalid(self) -> None:
         config = Config(8, 6, (0, 0), (7, 5), "maze.txt", True, None, "DFS")
         stderr = io.StringIO()
         with redirect_stderr(stderr):
@@ -82,13 +82,13 @@ class CommandLineTests(unittest.TestCase):
                     "a_maze_ing.create_42_pattern",
                     side_effect=PatternError("would cover ENTRY 2,2"),
                 ),
-                patch("a_maze_ing.run_interactive") as run,
+                patch("a_maze_ing.run_interactive", return_value=0) as run,
             ):
                 self.assertEqual(
-                    a_maze_ing.main(["a_maze_ing.py", "config.txt"]), 1
+                    a_maze_ing.main(["a_maze_ing.py", "config.txt"]), 0
                 )
-        self.assertIn("invalid 42 pattern", stderr.getvalue())
-        run.assert_not_called()
+        self.assertIn("generating without it", stderr.getvalue())
+        self.assertEqual(run.call_args.args[1], set())
 
 
 class RendererTests(unittest.TestCase):

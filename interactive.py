@@ -50,7 +50,7 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
             return 0
         except KeyboardInterrupt:
             print("\nInterrupted. Exiting.", file=sys.stderr)
-            return 130
+            return 0
         except OSError as err:
             # A disconnected terminal or failed input stream should not crash
             # the interactive session with a traceback.

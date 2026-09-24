@@ -8,7 +8,7 @@ import sys
 
 from config import ConfigError, load_config
 from interactive import run_interactive
-from pattern import PatternError, PatternTooSmallError, create_42_pattern
+from pattern import PatternError, create_42_pattern
 
 
 def main(argv: list[str]) -> int:
@@ -33,12 +33,9 @@ def main(argv: list[str]) -> int:
         pattern = create_42_pattern(
             config.width, config.height, config.entry, config.exit
         )
-    except PatternTooSmallError as err:
+    except PatternError as err:
         print(f"Error: {err}; generating without it.", file=sys.stderr)
         pattern = set()
-    except PatternError as err:
-        print(f"Error: invalid 42 pattern: {err}", file=sys.stderr)
-        return 1
 
     return run_interactive(config, pattern)
 
@@ -46,6 +43,10 @@ def main(argv: list[str]) -> int:
 if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv))
+    except KeyboardInterrupt:
+        # Ctrl-C outside the prompt, e.g. while a large maze is generated.
+        print("\nInterrupted. Exiting.", file=sys.stderr)
+        sys.exit(0)
     except BrokenPipeError:
         # A downstream command (for example, ``head``) may close a pipe early.
         # Treat that expected condition as a successful, quiet exit.

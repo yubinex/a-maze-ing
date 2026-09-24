@@ -131,10 +131,9 @@ SEED=42
 ALGORITHM=DFS
 ```
 
-For a maze too small for the `42`, the program prints an error and continues
-without it, as permitted by the subject. If the centred pattern overlaps an
-entry/exit or disconnects the active maze, the configuration is rejected rather
-than silently producing a large pattern-free maze.
+If the centred `42` cannot be placed, because the maze is too small, the
+pattern would cover the entry or exit, or it would disconnect part of the maze,
+the program prints an error explaining why and continues without it.
 
 ## Output File Format
 

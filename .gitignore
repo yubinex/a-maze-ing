@@ -19,3 +19,6 @@ htmlcov/
 
 # Project assets supplied outside version control
 *.pdf
+
+# Generated maze output (default OUTPUT_FILE)
+maze.txt
