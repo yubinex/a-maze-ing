@@ -8,7 +8,7 @@ import sys
 
 from config import ConfigError, load_config
 from interactive import run_interactive
-from pattern import PatternError, PatternTooSmallError, create_42_pattern
+from pattern import PatternError, create_42_pattern
 
 
 def main(argv: list[str]) -> int:
@@ -33,12 +33,9 @@ def main(argv: list[str]) -> int:
         pattern = create_42_pattern(
             config.width, config.height, config.entry, config.exit
         )
-    except PatternTooSmallError as err:
+    except PatternError as err:
         print(f"Error: {err}; generating without it.", file=sys.stderr)
         pattern = set()
-    except PatternError as err:
-        print(f"Error: invalid 42 pattern: {err}", file=sys.stderr)
-        return 1
 
     return run_interactive(config, pattern)
 
