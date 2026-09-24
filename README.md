@@ -171,7 +171,8 @@ Python recursion.
 ## Reusable Code: `mazegen`
 
 `mazegen` is independent of the application and contains `MazeGenerator`, the
-`Grid` type, and wall constants. It can be built from the tracked
+`Grid` type, and wall constants. Its own documentation,
+[`mazegen/README.md`](mazegen/README.md), is shipped inside the package. It can be built from the tracked
 `pyproject.toml` and `mazegen/` source:
 
 ```bash
