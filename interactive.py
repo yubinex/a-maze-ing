@@ -14,8 +14,11 @@ _WALL_COLORS = ("\033[37m", "\033[34m", "\033[33m", "\033[32m")
 
 def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
     """Display a maze and process regeneration, path, color, and quit input."""
+    fixed_seed = config.seed is not None
+    current_seed = (
+        config.seed if fixed_seed else random.randrange(2**63)
+    )
     try:
-        current_seed = config.seed
         grid, path = _generate_maze(config, pattern, current_seed)
     except (ValueError, OutputError) as err:
         print(f"Error: {err}", file=sys.stderr)
@@ -26,7 +29,10 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
     while True:
         if sys.stdout.isatty():
             print("\033[2J\033[H", end="")
-        print(f"Seed: {current_seed!r} | Perfect: {config.perfect}")
+        seed_kind = "fixed" if fixed_seed else "random"
+        print(
+            f"Seed: {current_seed!r} ({seed_kind}) | Perfect: {config.perfect}"
+        )
         render_maze(
             grid,
             pattern,
@@ -35,7 +41,8 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
             path if show_path else "",
             _WALL_COLORS[color_index],
         )
-        print("[r]egenerate  [p]ath  [c]olor  [q]uit")
+        regenerate_hint = "same maze: fixed seed" if fixed_seed else "new maze"
+        print(f"[r]egenerate ({regenerate_hint})  [p]ath  [c]olor  [q]uit")
         try:
             command = input("> ").strip().lower()
         except EOFError:
@@ -43,7 +50,12 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
             return 0
         except KeyboardInterrupt:
             print("\nInterrupted. Exiting.", file=sys.stderr)
-            return 130
+            return 0
+        except OSError as err:
+            # A disconnected terminal or failed input stream should not crash
+            # the interactive session with a traceback.
+            print(f"Error: terminal input failed ({err})", file=sys.stderr)
+            return 1
         if command == "q":
             return 0
         if command == "p":
@@ -52,7 +64,8 @@ def run_interactive(config: Config, pattern: set[Coordinate]) -> int:
             color_index = (color_index + 1) % len(_WALL_COLORS)
         elif command == "r":
             try:
-                current_seed = random.randrange(2**63)
+                if not fixed_seed:
+                    current_seed = random.randrange(2**63)
                 grid, path = _generate_maze(config, pattern, current_seed)
             except (ValueError, OutputError) as err:
                 print(f"Error: {err}", file=sys.stderr)

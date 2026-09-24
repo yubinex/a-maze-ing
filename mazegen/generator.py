@@ -164,7 +164,7 @@ class MazeGenerator:
         opened = 0
         for x, y, nx, ny, wall in candidates:
             self._open_wall(x, y, nx, ny, wall)
-            if self._has_open_3_by_3_area():
+            if self._opens_3_by_3_area(x, y, wall):
                 self.grid[y][x] |= wall
                 self.grid[ny][nx] |= OPPOSITE[wall]
                 continue
@@ -173,22 +173,51 @@ class MazeGenerator:
                 return
 
     def _has_open_3_by_3_area(self) -> bool:
-        """Return whether the grid contains a fully open 3-by-3 cell area."""
-        for y in range(self.height - 2):
-            for x in range(self.width - 2):
-                horizontal_open = all(
-                    not self.grid[row][column] & EAST
-                    for row in range(y, y + 3)
-                    for column in range(x, x + 2)
-                )
-                vertical_open = all(
-                    not self.grid[row][column] & SOUTH
-                    for row in range(y, y + 2)
-                    for column in range(x, x + 3)
-                )
-                if horizontal_open and vertical_open:
-                    return True
-        return False
+        """Return whether the grid contains a fully open 3-by-3 cell area.
+
+        Generation uses the faster local check :meth:`_opens_3_by_3_area`;
+        this full-grid scan lets tests verify a finished maze independently.
+        """
+        return any(
+            self._is_open_3_by_3(x, y)
+            for y in range(self.height - 2)
+            for x in range(self.width - 2)
+        )
+
+    def _opens_3_by_3_area(self, x: int, y: int, wall: int) -> bool:
+        """Return whether the wall just opened completes an open 3-by-3 area.
+
+        Only areas covering that wall can have changed, so at most six
+        top-left corners are examined instead of the whole grid. This relies
+        on the grid holding no open 3-by-3 area before the wall was opened.
+        """
+        corner_xs: tuple[int, ...]
+        corner_ys: tuple[int, ...]
+        if wall == EAST:
+            corner_xs, corner_ys = (x - 1, x), (y - 2, y - 1, y)
+        else:
+            corner_xs, corner_ys = (x - 2, x - 1, x), (y - 1, y)
+        return any(
+            self._is_open_3_by_3(corner_x, corner_y)
+            for corner_x in corner_xs
+            for corner_y in corner_ys
+            if 0 <= corner_x <= self.width - 3
+            and 0 <= corner_y <= self.height - 3
+        )
+
+    def _is_open_3_by_3(self, x: int, y: int) -> bool:
+        """Return whether the 3-by-3 area at top-left ``x``/``y`` is open."""
+        horizontal_open = all(
+            not self.grid[row][column] & EAST
+            for row in range(y, y + 3)
+            for column in range(x, x + 2)
+        )
+        vertical_open = all(
+            not self.grid[row][column] & SOUTH
+            for row in range(y, y + 2)
+            for column in range(x, x + 3)
+        )
+        return horizontal_open and vertical_open
 
     def _open_wall(self, x: int, y: int, nx: int, ny: int, wall: int) -> None:
         """Open the shared wall between two neighboring cells."""
