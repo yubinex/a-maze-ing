@@ -173,7 +173,11 @@ class MazeGenerator:
                 return
 
     def _has_open_3_by_3_area(self) -> bool:
-        """Return whether the grid contains a fully open 3-by-3 cell area."""
+        """Return whether the grid contains a fully open 3-by-3 cell area.
+
+        Generation uses the faster local check :meth:`_opens_3_by_3_area`;
+        this full-grid scan lets tests verify a finished maze independently.
+        """
         return any(
             self._is_open_3_by_3(x, y)
             for y in range(self.height - 2)
