@@ -7,6 +7,8 @@ Usage:
 import sys
 
 from config import ConfigError, load_config
+from interactive import run_interactive
+from pattern import PatternError, PatternTooSmallError, create_42_pattern
 
 
 def main(argv: list[str]) -> int:
@@ -27,10 +29,24 @@ def main(argv: list[str]) -> int:
         print(f"Error: {err}", file=sys.stderr)
         return 1
 
-    # Placeholder until the generator exists.
-    print(config)
-    return 0
+    try:
+        pattern = create_42_pattern(
+            config.width, config.height, config.entry, config.exit
+        )
+    except PatternTooSmallError as err:
+        print(f"Error: {err}; generating without it.", file=sys.stderr)
+        pattern = set()
+    except PatternError as err:
+        print(f"Error: invalid 42 pattern: {err}", file=sys.stderr)
+        return 1
+
+    return run_interactive(config, pattern)
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    try:
+        sys.exit(main(sys.argv))
+    except BrokenPipeError:
+        # A downstream command (for example, ``head``) may close a pipe early.
+        # Treat that expected condition as a successful, quiet exit.
+        sys.exit(0)
